@@ -88,9 +88,7 @@ def calculate():
 
     # Burada her rotasyonu teker teker değerlendiriyoruz
     orientations = [
-        ((x, y, z), "xyz"),
         ((x, z, y), "xzy"),
-        ((y, x, z), "yxz"),
         ((y, z, x), "yzx"),
         ((z, x, y), "zxy"),
         ((z, y, x), "zyx"),
