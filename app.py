@@ -1,5 +1,4 @@
 from flask import Flask, render_template, request
-import random
 import numpy as np
 import matplotlib.pyplot as plt
 from io import BytesIO
@@ -27,9 +26,9 @@ def greedy_place_box(container_dims, orientations, trials=100):
     for i in range(trials):
         placed_boxes = []
         for orientation, name in orientations:
-            for x_pos in range(0, int(container_dims[0] - orientation[0]) + 1, int(orientation[0])):
-                for y_pos in range(0, int(container_dims[1] - orientation[1]) + 1, int(orientation[1])):
-                    for z_pos in range(0, int(container_dims[2] - orientation[2]) + 1, int(orientation[2])):
+            for x_pos in np.arange(0, container_dims[0] - orientation[0] + 1, orientation[0]):
+                for y_pos in np.arange(0, container_dims[1] - orientation[1] + 1, orientation[1]):
+                    for z_pos in np.arange(0, container_dims[2] - orientation[2] + 1, orientation[2]):
                         overlap = False
                         for pos, dim, _ in placed_boxes:
                             if (x_pos < pos[0] + dim[0] and x_pos + orientation[0] > pos[0] and
@@ -59,8 +58,11 @@ def plot_solution(placed_boxes):
     ax.set_ylim([0, container_dims[1]])
     ax.set_zlim([0, container_dims[2]])
 
-    for pos, dim, _ in placed_boxes:
-        ax.bar3d(pos[0], pos[1], pos[2], dim[0], dim[1], dim[2], shade=True, color=np.random.rand(3,))
+    # Kutulara sırayla siyah ve beyaz renk atıyoruz
+    colors = ['white', 'black']
+    for idx, (pos, dim, _) in enumerate(placed_boxes):
+        color = colors[idx % 2]  # Bir siyah bir beyaz
+        ax.bar3d(pos[0], pos[1], pos[2], dim[0], dim[1], dim[2], shade=True, color=color)
 
     ax.set_xlabel('X Eksen')
     ax.set_ylabel('Y Eksen')
@@ -84,11 +86,14 @@ def calculate():
     y = float(request.form['y'])
     z = float(request.form['z'])
 
+    # Burada her rotasyonu teker teker değerlendiriyoruz
     orientations = [
-        ((int(z), int(y), int(x)), "zyx"),
-        ((int(z), int(x), int(y)), "zxy"),
-        ((int(x), int(z), int(y)), "xzy"),
-        ((int(y), int(z), int(x)), "yzx")
+        ((x, y, z), "xyz"),
+        ((x, z, y), "xzy"),
+        ((y, x, z), "yxz"),
+        ((y, z, x), "yzx"),
+        ((z, x, y), "zxy"),
+        ((z, y, x), "zyx"),
     ]
 
     best_solution = greedy_place_box(container_dims, orientations, trials=100)
