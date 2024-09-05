@@ -48,6 +48,32 @@ def greedy_place_box(container_dims, orientations, trials=100):
 
     return best_placed_boxes
 
+# Rotasyonları dene ve en iyi çözümü bul
+def find_best_rotation(container_dims, x, y, z):
+    """Tüm rotasyonları dener ve en iyi kutu yerleşimini bulur."""
+    orientations = [
+        ((x, y, z), "xyz"),
+        ((x, z, y), "xzy"),
+        ((y, x, z), "yxz"),
+        ((y, z, x), "yzx"),
+        ((z, x, y), "zxy"),
+        ((z, y, x), "zyx"),
+    ]
+    
+    best_solution = []
+    best_remaining_space = float('inf')
+    
+    # Her rotasyonu dene
+    for orientation in orientations:
+        placed_boxes = greedy_place_box(container_dims, [orientation], trials=100)
+        remaining_space = calculate_remaining_space(container_dims, placed_boxes)
+        
+        if remaining_space < best_remaining_space:
+            best_remaining_space = remaining_space
+            best_solution = placed_boxes
+            
+    return best_solution
+
 # 3D görselleştirme fonksiyonu
 def plot_solution(placed_boxes):
     """Yerleştirilen kutuları 3D olarak görselleştirir"""
@@ -86,15 +112,8 @@ def calculate():
     y = float(request.form['y'])
     z = float(request.form['z'])
 
-    # Burada her rotasyonu teker teker değerlendiriyoruz
-    orientations = [
-        ((x, z, y), "xzy"),
-        ((y, z, x), "yzx"),
-        ((z, x, y), "zxy"),
-        ((z, y, x), "zyx"),
-    ]
-
-    best_solution = greedy_place_box(container_dims, orientations, trials=100)
+    # En iyi rotasyonu bul
+    best_solution = find_best_rotation(container_dims, x, y, z)
 
     # Kutuların adedini hesapla
     number_of_boxes = len(best_solution)
@@ -107,3 +126,4 @@ def calculate():
 
 if __name__ == '__main__':
     app.run(debug=True)
+
