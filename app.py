@@ -52,9 +52,7 @@ def greedy_place_box(container_dims, orientations, trials=100):
 def find_best_rotation(container_dims, x, y, z):
     """Tüm rotasyonları dener ve en iyi kutu yerleşimini bulur."""
     orientations = [
-        ((x, y, z), "xyz"),
         ((x, z, y), "xzy"),
-        ((y, x, z), "yxz"),
         ((y, z, x), "yzx"),
         ((z, x, y), "zxy"),
         ((z, y, x), "zyx"),
