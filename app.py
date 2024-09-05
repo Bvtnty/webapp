@@ -23,22 +23,23 @@ def greedy_place_box(container_dims, box_dims, trials=100):
     best_placed_boxes = []
     best_remaining_space = float('inf')
 
+    # Z eksenine asla orientation[2] koymadan kullanılan rotasyonlar
     orientations = [
-        ((box_dims[0], box_dims[1], box_dims[2]), "xyz"),
-        ((box_dims[0], box_dims[2], box_dims[1]), "xzy"),
-        ((box_dims[1], box_dims[0], box_dims[2]), "yxz"),
-        ((box_dims[1], box_dims[2], box_dims[0]), "yzx"),
-        ((box_dims[2], box_dims[0], box_dims[1]), "zxy"),
-        ((box_dims[2], box_dims[1], box_dims[0]), "zyx"),
+        ((box_dims[0], box_dims[2], box_dims[1]), "xzy"),  # x eksenine orientation[0], y eksenine orientation[2]
+        ((box_dims[1], box_dims[2], box_dims[0]), "yzx"),  # y eksenine orientation[1], x eksenine orientation[2]
+        ((box_dims[2], box_dims[0], box_dims[1]), "zxy"),  # y eksenine orientation[2], x eksenine orientation[0]
+        ((box_dims[2], box_dims[1], box_dims[0]), "zyx"),  # x eksenine orientation[2], y eksenine orientation[1]
     ]
     
     for i in range(trials):
         placed_boxes = []
         for orientation, name in orientations:
-            for x_pos in np.arange(0, container_dims[0] - orientation[0] + 1, orientation[0]):
-                for y_pos in np.arange(0, container_dims[1] - orientation[1] + 1, orientation[1]):
+            # X ve Y ekseni boyunca kutu yerleştirilecek pozisyonları kontrol ediyoruz
+            for x_pos in np.arange(0, container_dims[0] - orientation[0] + 1, 1):
+                for y_pos in np.arange(0, container_dims[1] - orientation[1] + 1, 1):
                     for z_pos in np.arange(0, container_dims[2] - orientation[2] + 1, orientation[2]):
                         overlap = False
+                        # Daha önce yerleştirilen kutularla çakışma kontrolü
                         for pos, dim, _ in placed_boxes:
                             if (x_pos < pos[0] + dim[0] and x_pos + orientation[0] > pos[0] and
                                 y_pos < pos[1] + dim[1] and y_pos + orientation[1] > pos[1] and
@@ -46,11 +47,13 @@ def greedy_place_box(container_dims, box_dims, trials=100):
                                 overlap = True
                                 break
                         if not overlap:
+                            # Kutuyu yerleştiriyoruz ve orientation[2] Z ekseninde değil
                             placed_boxes.append(((x_pos, y_pos, z_pos), orientation, name))
-                            break  # En iyi rotasyonu bulduktan sonra devam et
+                            break
 
         remaining_space = calculate_remaining_space(container_dims, placed_boxes)
         
+        # En iyi çözümü bulup kaydediyoruz
         if remaining_space < best_remaining_space:
             best_remaining_space = remaining_space
             best_placed_boxes = placed_boxes[:]
